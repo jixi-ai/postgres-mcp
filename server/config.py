@@ -1,5 +1,5 @@
 # server/config.py
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 from server.database import Database
 from server.logging_config import get_logger
 
