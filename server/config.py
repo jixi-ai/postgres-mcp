@@ -9,10 +9,11 @@ logger = get_logger("instance")
 global_db = Database()
 logger.info("Global database manager initialized")
 
-# Create the MCP instance with NO lifespan; let it be a simple ASGI app
+# Note: json_response=True is recommended for HTTP transport
 mcp = FastMCP(
     "pg-mcp-server",
     debug=True,
+    json_response=True,
     dependencies=["asyncpg", "mcp"],
 )
 

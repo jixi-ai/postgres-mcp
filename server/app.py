@@ -9,7 +9,7 @@ from server.logging_config import (
 )
 from server.config import mcp  # creates global_db and sets mcp.state
 
-# Import registration functions so we can register tools/resources
+# Import registration functions
 from server.resources.schema import register_schema_resources
 from server.resources.data import register_data_resources
 from server.resources.extensions import register_extension_resources
@@ -38,10 +38,10 @@ register_natural_language_prompts()
 register_data_visualization_prompts()
 
 if __name__ == "__main__":
-    logger.info("Starting MCP server with SSE transport")
+    logger.info("Starting MCP server with Streamable HTTP transport")
 
-    # FastMCP provides an ASGI app with SSE support
-    app = mcp.sse_app()
+    # 🔁 Swap from SSE → Streamable HTTP
+    app = mcp.streamable_http_app()
 
     uvicorn_log_config = configure_uvicorn_logging(log_level)
 
