@@ -16,6 +16,7 @@ from server.resources.extensions import register_extension_resources
 from server.tools.connection import register_connection_tools
 from server.tools.query import register_query_tools
 from server.tools.viz import register_viz_tools
+from server.tools.schema import register_schema_tools
 from server.prompts.natural_language import register_natural_language_prompts
 from server.prompts.data_visualization import register_data_visualization_prompts
 
@@ -33,6 +34,7 @@ register_query_tools()
 register_viz_tools()
 register_natural_language_prompts()
 register_data_visualization_prompts()
+register_schema_tools()
 
 # ---- HTTP JSON / streamable transport ----
 # This exposes the MCP server as a stateless HTTP endpoint at /mcp
