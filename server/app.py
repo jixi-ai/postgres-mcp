@@ -1,14 +1,41 @@
 # server/app.py
 import os
-from server.logging_config import configure_logging, get_logger, configure_uvicorn_logging
-from server.config import mcp  # this will create global_db and set mcp.state
-
 import uvicorn
+
+from server.logging_config import (
+    configure_logging,
+    get_logger,
+    configure_uvicorn_logging,
+)
+from server.config import mcp  # creates global_db and sets mcp.state
+
+# Import registration functions so we can register tools/resources
+from server.resources.schema import register_schema_resources
+from server.resources.data import register_data_resources
+from server.resources.extensions import register_extension_resources
+from server.tools.connection import register_connection_tools
+from server.tools.query import register_query_tools
+from server.tools.viz import register_viz_tools
+from server.prompts.natural_language import register_natural_language_prompts
+from server.prompts.data_visualization import (
+    register_data_visualization_prompts,
+)
 
 # Configure logging first
 log_level = os.environ.get("LOG_LEVEL", "DEBUG")
 configure_logging(level=log_level)
 logger = get_logger("app")
+
+# Register everything on import, before we create the ASGI app
+logger.info("Registering resources and tools")
+register_schema_resources()
+register_extension_resources()
+register_data_resources()
+register_connection_tools()
+register_query_tools()
+register_viz_tools()
+register_natural_language_prompts()
+register_data_visualization_prompts()
 
 if __name__ == "__main__":
     logger.info("Starting MCP server with SSE transport")
