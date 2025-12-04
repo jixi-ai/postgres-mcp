@@ -7,9 +7,9 @@ from server.logging_config import (
     get_logger,
     configure_uvicorn_logging,
 )
-from server.config import mcp  # creates global_db and sets mcp.state
+from server.config import mcp
 
-# Import registration functions so we can register tools/resources
+# Import + register all tools/resources (same as before)
 from server.resources.schema import register_schema_resources
 from server.resources.data import register_data_resources
 from server.resources.extensions import register_extension_resources
@@ -17,16 +17,12 @@ from server.tools.connection import register_connection_tools
 from server.tools.query import register_query_tools
 from server.tools.viz import register_viz_tools
 from server.prompts.natural_language import register_natural_language_prompts
-from server.prompts.data_visualization import (
-    register_data_visualization_prompts,
-)
+from server.prompts.data_visualization import register_data_visualization_prompts
 
-# Configure logging first
 log_level = os.environ.get("LOG_LEVEL", "DEBUG")
 configure_logging(level=log_level)
 logger = get_logger("app")
 
-# Register everything on import, before we create the ASGI app
 logger.info("Registering resources and tools")
 register_schema_resources()
 register_extension_resources()
@@ -37,19 +33,18 @@ register_viz_tools()
 register_natural_language_prompts()
 register_data_visualization_prompts()
 
-# 👉 HTTP JSON transport app
-# You can pick a path; I'll use "/mcp" for clarity.
-app = mcp.http_app(path="/mcp")
+# ⬇️ THIS is the HTTP JSON transport app
+app = mcp.streamable_http_app()
 
 if __name__ == "__main__":
-    logger.info("Starting MCP server with HTTP JSON transport")
+    logger.info("Starting MCP server with streamable HTTP transport")
 
     uvicorn_log_config = configure_uvicorn_logging(log_level)
 
     uvicorn.run(
-        "server.app:app",
+        app,
         host="0.0.0.0",
-        port=int(os.environ.get("PORT", 8000)),
+        port=8000,
         log_level=log_level.lower(),
         log_config=uvicorn_log_config,
     )
