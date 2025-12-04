@@ -13,16 +13,29 @@ def register_connection_tools():
         """
         Register a database connection string and return its connection ID.
         """
-        db = mcp.state["db"]  # global_db from config.py
-        conn_id = db.register_connection(connection_string)
-        logger.info(f"Registered database connection with ID: {conn_id}")
-        return {"conn_id": conn_id}
+        logger.info(f"[connect] called with connection_string length={len(connection_string)}")
+
+        try:
+            db = mcp.state["db"]  # global_db from config.py
+        except Exception as e:
+            logger.error(f"[connect] failed to fetch db from mcp.state: {e}")
+            raise
+
+        try:
+            conn_id = db.register_connection(connection_string)
+            logger.info(f"[connect] Registered database connection with ID: {conn_id}")
+            return {"conn_id": conn_id}
+        except Exception as e:
+            logger.error(f"[connect] Error during register_connection: {e}")
+            # Let FastMCP serialize this error back to the client
+            raise
 
     @mcp.tool()
     async def disconnect(conn_id: str):
         """
         Close a specific database connection and remove it from the pool.
         """
+        logger.info(f"[disconnect] called for conn_id={conn_id}")
         db = mcp.state["db"]
 
         if conn_id not in db._connection_map:
