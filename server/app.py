@@ -46,19 +46,16 @@ async def starlette_lifespan(app):
 
 if __name__ == "__main__":
     logger.info("Starting MCP server with SSE transport")
-    app = Starlette(
-        routes=[Mount('/', app=mcp.sse_app())],
-        lifespan=starlette_lifespan
-    )
-    
-    # Configure Uvicorn with our logging setup
+
+    # FastMCP SSE ASGI app (with its own lifespan)
+    app = mcp.sse_app()
+
     uvicorn_log_config = configure_uvicorn_logging(log_level)
-    
-    # Use our configured log level for Uvicorn
+
     uvicorn.run(
-        app, 
-        host="0.0.0.0", 
-        port=8000, 
+        app,
+        host="0.0.0.0",
+        port=8000,
         log_level=log_level.lower(),
-        log_config=uvicorn_log_config
+        log_config=uvicorn_log_config,
     )

@@ -10,23 +10,23 @@ logger = get_logger("instance")
 global_db = Database()
 logger.info("Global database manager initialized")
 
-# Create MCP instance first
-mcp = FastMCP(
-    "pg-mcp-server",
-    debug=True,
-    dependencies=["asyncpg", "mcp"]
-)
-
-# Eagerly set state so tools can *always* find db
-mcp.state = {"db": global_db}
-
 @asynccontextmanager
 async def app_lifespan(app: FastMCP) -> AsyncIterator[dict]:
     """Manage application lifecycle."""
-    # optional: reinforce state, but it's already set above
+    mcp.state = {"db": global_db}
     logger.info("Application startup - using global database manager")
+
     try:
+        # anything you want to expose in ctx.request_context.lifespan_context
         yield {"db": global_db}
     finally:
-        # Don't close connections on individual session end
-        pass
+        logger.info("Application shutdown - closing all database connections")
+        await global_db.close()
+
+# Create the MCP instance
+mcp = FastMCP(
+    "pg-mcp-server",
+    debug=True,
+    lifespan=app_lifespan,
+    dependencies=["asyncpg", "mcp"]
+)
