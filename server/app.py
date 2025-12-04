@@ -9,7 +9,7 @@ from server.logging_config import (
 )
 from server.config import mcp  # creates global_db and sets mcp.state
 
-# Import registration functions
+# Import registration functions so we can register tools/resources
 from server.resources.schema import register_schema_resources
 from server.resources.data import register_data_resources
 from server.resources.extensions import register_extension_resources
@@ -37,18 +37,19 @@ register_viz_tools()
 register_natural_language_prompts()
 register_data_visualization_prompts()
 
-if __name__ == "__main__":
-    logger.info("Starting MCP server with Streamable HTTP transport")
+# 👉 HTTP JSON transport app
+# You can pick a path; I'll use "/mcp" for clarity.
+app = mcp.http_app(path="/mcp")
 
-    # 🔁 Swap from SSE → Streamable HTTP
-    app = mcp.streamable_http_app()
+if __name__ == "__main__":
+    logger.info("Starting MCP server with HTTP JSON transport")
 
     uvicorn_log_config = configure_uvicorn_logging(log_level)
 
     uvicorn.run(
-        app,
+        "server.app:app",
         host="0.0.0.0",
-        port=8000,
+        port=int(os.environ.get("PORT", 8000)),
         log_level=log_level.lower(),
         log_config=uvicorn_log_config,
     )
