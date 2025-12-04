@@ -13,24 +13,28 @@ def register_connection_tools():
     async def connect(connection_string: str, *, ctx: Context):
         """
         Register a database connection string and return its connection ID.
-        
+
         Args:
             connection_string: PostgreSQL connection string (required)
             ctx: Request context (injected by the framework)
-            
+
         Returns:
             Dictionary containing the connection ID
         """
         # Get database from context
         # db = ctx.request_context.lifespan_context.get("db")
-        db = mcp.state["db"]
-        
-        # Register the connection to get a connection ID
-        conn_id = db.register_connection(connection_string)
-        
-        # Return the connection ID
-        logger.info(f"Registered database connection with ID: {conn_id}")
-        return {"conn_id": conn_id}
+        try:
+            db = mcp.state.get("db")
+            if db is None:
+                raise RuntimeError("Database manager not initialized in mcp.state")
+
+            conn_id = db.register_connection(connection_string)
+            logger.info(f"Registered database connection with ID: {conn_id}")
+            return {"conn_id": conn_id}
+        except Exception as e:
+            logger.exception(f"Error in connect tool: {e}")
+            # Raising here should be turned into a JSON-RPC error by fastmcp
+            raise
     
     @mcp.tool()
     async def disconnect(conn_id: str, *, ctx: Context):
