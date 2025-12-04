@@ -12,21 +12,23 @@ logger.info("Global database manager initialized")
 
 @asynccontextmanager
 async def app_lifespan(app: FastMCP) -> AsyncIterator[dict]:
-    """Manage application lifecycle."""
+    """
+    FastMCP lifespan: set up shared state once per app.
+    IMPORTANT: do NOT close the DB pools here, because FastMCP may
+    end this lifespan when a session ends while SSE writer is still active.
+    """
     mcp.state = {"db": global_db}
     logger.info("Application startup - using global database manager")
-
     try:
-        # anything you want to expose in ctx.request_context.lifespan_context
         yield {"db": global_db}
     finally:
-        logger.info("Application shutdown - closing all database connections")
-        await global_db.close()
+        # Let the process shutdown handle DB cleanup instead.
+        logger.info("Application shutdown - leaving DB pools open (process-level cleanup)")
+        # no global_db.close() here
 
-# Create the MCP instance
 mcp = FastMCP(
     "pg-mcp-server",
     debug=True,
     lifespan=app_lifespan,
-    dependencies=["asyncpg", "mcp"]
+    dependencies=["asyncpg", "mcp"],
 )
